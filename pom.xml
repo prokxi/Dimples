@@ -29,6 +29,8 @@
 	<properties>
 		<java.version>25</java.version>
 		<springdoc.version>3.1.1</springdoc.version>
+		<archunit.version>1.5.1</archunit.version>
+		<spring-javaformat.version>0.0.48</spring-javaformat.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -109,6 +111,12 @@
 			<artifactId>testcontainers-postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit-junit5</artifactId>
+			<version>${archunit.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -116,6 +124,56 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>enforce-rules</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireJavaVersion>
+									<version>[25,)</version>
+								</requireJavaVersion>
+								<requireMavenVersion>
+									<version>[3.9,)</version>
+								</requireMavenVersion>
+								<banDuplicatePomDependencyVersions/>
+								<bannedDependencies>
+									<message>Banned dependency. This project uses Spring Data JDBC (no JPA/Hibernate ORM), JUnit 5 and java.time. See AGENTS.md.</message>
+									<excludes>
+										<exclude>org.springframework.boot:spring-boot-starter-data-jpa</exclude>
+										<exclude>jakarta.persistence:jakarta.persistence-api</exclude>
+										<exclude>org.hibernate.orm:*</exclude>
+										<exclude>org.hibernate:hibernate-core</exclude>
+										<exclude>junit:junit</exclude>
+										<exclude>org.junit.vintage:*</exclude>
+										<exclude>org.testng:testng</exclude>
+										<exclude>joda-time:joda-time</exclude>
+										<exclude>log4j:log4j</exclude>
+									</excludes>
+								</bannedDependencies>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>io.spring.javaformat</groupId>
+				<artifactId>spring-javaformat-maven-plugin</artifactId>
+				<version>${spring-javaformat.version}</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>validate</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

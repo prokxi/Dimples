@@ -41,8 +41,28 @@ are by ID. Don't add JPA/Hibernate.
 ./mvnw test                 # unit + integration tests (Testcontainers needs Docker)
 ./mvnw verify               # full build — must pass before you call a task done
 ./mvnw -DskipTests package  # build the jar without tests
+./mvnw test -Dtest='*ArchitectureTest'  # architecture rules only — fast, no Docker; run after every change
+./mvnw spring-javaformat:apply          # format the code (the build fails on unformatted code)
 docker compose down         # stop the local Postgres
 ```
+
+### Guardrails
+
+These turn the rules in this file into checks. When one fails, fix the code — never weaken, skip or
+work around the check. Changing a check needs the user's approval.
+
+- **ArchUnit** (`src/test/java/com/prokxi/dimples/*ArchitectureTest.java`): dependency rules, naming
+  conventions and coding rules (no field injection, no `System.out`, no JPA, no `Instant.now()` without
+  a `Clock`, `@Transactional` only in `service`, controllers return DTOs). Runs in every `./mvnw test`.
+- **spring-javaformat**: `./mvnw verify` fails on unformatted code. Run `./mvnw spring-javaformat:apply`.
+- **Maven Enforcer**: Java 25+, Maven 3.9+, and bans JPA/Hibernate ORM, JUnit 4/TestNG, Joda-Time.
+- **gitlint** (`.gitlint`, `.githooks/commit-msg`): every commit message must be a Conventional Commit
+  (allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
+  `revert`), with a title of at most 72 characters. If a commit is rejected, fix the message and commit again.
+- **Claude Code hooks** (`.claude/settings.json`, `.claude/hooks/`): block edits to committed migrations and
+  badly named migrations, force pushes, pushes to `main`, commits on `main`, `--no-verify`, changes to
+  `core.hooksPath` and skip flags for the checks above. When you finish with changed Java files, the code is formatted and the architecture
+  tests run; if they fail, you have to fix the violations before you are done.
 
 - Docker Compose support only runs with `spring-boot:run` / from the IDE. It is **disabled in tests**;
   tests get their database from `TestcontainersConfiguration` via `@ServiceConnection`.
@@ -265,7 +285,9 @@ Every code change comes with tests. `./mvnw verify` must pass.
 - **Never push to `main`. Never force-push shared branches. Only commit or push when the user asks.**
 - Commit messages follow **Conventional Commits**, in English, imperative:
   `feat(service): add Stableford scoring`, `fix(outbound): dedupe Garmin shots by source id`,
-  `test: …`, `refactor: …`, `docs: …`, `chore: …`, `build: …`.
+  `test: …`, `refactor: …`, `docs: …`, `chore: …`, `build: …`. gitlint checks this in a `commit-msg` hook.
+  One-time setup per clone: install gitlint (`pipx install gitlint` or `uv tool install gitlint-core`) and
+  run `git config core.hooksPath .githooks`.
 - Keep commits focused; don't mix refactoring with behaviour changes.
 
 ## What agents may do — and what needs approval

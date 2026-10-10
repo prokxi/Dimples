@@ -1,0 +1,14 @@
+# Commit message rules. See AGENTS.md, Git workflow, and https://jorisroovers.com/gitlint/
+[general]
+contrib = contrib-title-conventional-commits
+# Conventional Commits titles are often enough on their own.
+ignore = body-is-missing
+
+[title-max-length]
+line-length = 72
+
+[body-max-line-length]
+line-length = 100
+
+[contrib-title-conventional-commits]
+types = feat,fix,docs,style,refactor,perf,test,build,ci,chore,revert
