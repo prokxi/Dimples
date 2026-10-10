@@ -58,6 +58,8 @@ work around the check. Changing a check needs the user's approval.
 - **Maven Enforcer**: Java 25+, Maven 3.9+, and bans JPA/Hibernate ORM, JUnit 4/TestNG, Joda-Time.
 - **JaCoCo**: `./mvnw verify` fails if `domain` or `service` (each package, including sub-packages) drops
   below 90% line or 80% branch coverage. See the Testing section.
+- **PIT mutation testing** (`./mvnw verify -Pmutation`): mutates `domain` code and fails if the
+  `domain` unit tests kill fewer than 80% of the mutants. See the Testing section.
 - **gitlint** (`.gitlint`, `.githooks/commit-msg`): every commit message must be a Conventional Commit
   (allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
   `revert`), with a title of at most 72 characters. If a commit is rejected, fix the message and commit again.
@@ -270,6 +272,11 @@ Every code change comes with tests. `./mvnw verify` must pass.
   that only execute code to raise the number.
 - If you configure Surefire's `argLine`, keep `@{argLine}` in it, otherwise the JaCoCo agent is dropped
   and coverage silently becomes 0%.
+- **Mutation testing**: when you change code in `domain`, run `./mvnw verify -Pmutation` before you call
+  the task done. PIT makes small changes to the code (e.g. `<` → `<=`, `+` → `-`, returning `0`) and checks
+  that a test fails for each one. Surviving mutants are listed in `target/pit-reports/mutations.xml` and
+  `target/pit-reports/index.html`: add assertions or cases that kill them. Only `domain` unit tests are used,
+  so keep them free of Spring and Docker.
 
 - **Unit tests** (fast, no Spring context) for `domain` and `service`. Mock the service's
   interfaces with Mockito. Domain logic (handicap, scoring, unit conversion, import mapping) should
@@ -318,6 +325,7 @@ Every code change comes with tests. `./mvnw verify` must pass.
 
 - [ ] Code follows the architecture rules and naming conventions.
 - [ ] Tests added/updated; `./mvnw verify` passes.
+- [ ] If `domain` changed: `./mvnw verify -Pmutation` passes.
 - [ ] Schema changes are in a new Flyway migration.
 - [ ] Endpoints check ownership/visibility and are documented in the OpenAPI spec.
 - [ ] No secrets, no personal data in logs, no disabled tests.
