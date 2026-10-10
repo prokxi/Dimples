@@ -37,14 +37,25 @@ are by ID. Don't add JPA/Hibernate.
 ## Commands
 
 ```bash
-./mvnw spring-boot:run      # run the app; starts Postgres via compose.yaml (Docker must be running)
-./mvnw test                 # unit + integration tests (Testcontainers needs Docker)
-./mvnw verify               # full build — must pass before you call a task done
-./mvnw -DskipTests package  # build the jar without tests
-./mvnw test -Dtest='*ArchitectureTest'  # architecture rules only — fast, no Docker; run after every change
-./mvnw spring-javaformat:apply          # format the code (the build fails on unformatted code)
-docker compose down         # stop the local Postgres
+./mvnw spring-boot:run         # run the app; starts Postgres via compose.yaml (Docker must be running)
+./mvnw -q test                 # unit + integration tests (Testcontainers needs Docker)
+./mvnw -q verify               # full build — must pass before you call a task done
+./mvnw -q -DskipTests package  # build the jar without tests
+./mvnw -q test -Dtest='*ArchitectureTest'  # architecture rules only — fast, no Docker; run after every change
+./mvnw -q test -Dtest='RoundServiceTest'   # one test class (or 'RoundServiceTest#rejectsX' for one method)
+./mvnw -q verify -Pmutation                # mutation testing of domain (see Testing)
+./mvnw -q spring-javaformat:apply          # format the code (the build fails on unformatted code)
+docker compose down            # stop the local Postgres
 ```
+
+**Keep the output small.** Always pass `-q`: a green build then prints (almost) nothing, and a red one
+prints only the errors and failing tests. Don't pipe the full Maven output into the conversation. While
+working, run only the tests you touched (`-Dtest=…`), and the full `verify` once at the end.
+
+- Test logs (Spring, Testcontainers) are not printed to the console. They are in
+  `target/surefire-reports/<TestClass>-output.txt`, and the full results are in `target/surefire-reports/`.
+  Read them only for a failing test, and only the part you need (e.g. `grep`/`tail`).
+- Stack traces are trimmed to the test class. For the full trace, look in `target/surefire-reports/`.
 
 ### Guardrails
 
