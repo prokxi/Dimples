@@ -1,0 +1,10 @@
+#!/bin/sh
+# Lints the commit message with gitlint (rules in .gitlint).
+# Enable once per clone: git config core.hooksPath .githooks
+
+if ! command -v gitlint >/dev/null 2>&1; then
+	echo "commit-msg: gitlint is not installed. Install it with 'pipx install gitlint' or 'uv tool install gitlint-core'." >&2
+	exit 1
+fi
+
+exec gitlint --staged --msg-filename "$1"
