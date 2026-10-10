@@ -56,6 +56,8 @@ work around the check. Changing a check needs the user's approval.
   a `Clock`, `@Transactional` only in `service`, controllers return DTOs). Runs in every `./mvnw test`.
 - **spring-javaformat**: `./mvnw verify` fails on unformatted code. Run `./mvnw spring-javaformat:apply`.
 - **Maven Enforcer**: Java 25+, Maven 3.9+, and bans JPA/Hibernate ORM, JUnit 4/TestNG, Joda-Time.
+- **JaCoCo**: `./mvnw verify` fails if `domain` or `service` (each package, including sub-packages) drops
+  below 90% line or 80% branch coverage. See the Testing section.
 - **gitlint** (`.gitlint`, `.githooks/commit-msg`): every commit message must be a Conventional Commit
   (allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`,
   `revert`), with a title of at most 72 characters. If a commit is rejected, fix the message and commit again.
@@ -261,6 +263,13 @@ Shot data comes from many sources and must be **normalised into one source-indep
 ## Testing
 
 Every code change comes with tests. `./mvnw verify` must pass.
+
+- **Coverage** is measured by JaCoCo during `./mvnw verify`. When the coverage check fails, look up the
+  uncovered lines and branches in `target/site/jacoco/jacoco.csv` (per class) or `jacoco.xml` (per line),
+  or open `target/site/jacoco/index.html`, and add tests that assert real behaviour. Never write tests
+  that only execute code to raise the number.
+- If you configure Surefire's `argLine`, keep `@{argLine}` in it, otherwise the JaCoCo agent is dropped
+  and coverage silently becomes 0%.
 
 - **Unit tests** (fast, no Spring context) for `domain` and `service`. Mock the service's
   interfaces with Mockito. Domain logic (handicap, scoring, unit conversion, import mapping) should

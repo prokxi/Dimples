@@ -34,7 +34,7 @@ while IFS= read -r hooks_path; do
 	block "changing core.hooksPath (the commit-msg hook in .githooks runs gitlint)"
 done < <(grep -oE 'git[[:space:]]+[^;&|]*core\.hooksPath[^;&|]*' <<<"$command")
 
-[[ "$command" =~ -D(enforcer\.skip|spring-javaformat\.skip|archunit|maven\.test\.failure\.ignore|surefire\.failIfNoSpecifiedTests) ]] \
+[[ "$command" =~ -D(enforcer\.skip|spring-javaformat\.skip|jacoco\.(skip|haltOnFailure)|archunit|maven\.test\.failure\.ignore|surefire\.failIfNoSpecifiedTests) ]] \
 	&& block "skipping build guardrails"
 
 exit 0
