@@ -27,7 +27,6 @@ references:
 documentation:
   - backlog/docs/specs/doc-3 - SPEC-1-Accounts-Profile.md
 modified_files:
-  - .claude/worktrees/agent-af5357e2f849103bc
   - groma/actors/player.md
   - >-
     groma/systems/dimples/containers/dimples-backend/components/account-service.md
@@ -79,6 +78,7 @@ modified_files:
   - src/test/java/com/prokxi/dimples/service/GolferUserDetailsServiceTest.java
   - src/test/java/com/prokxi/dimples/service/LoginThrottleTest.java
   - src/test/java/com/prokxi/dimples/service/MutableClock.java
+  - .gitignore
 priority: high
 type: feature
 ordinal: 4000
