@@ -42,6 +42,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
 	}
 
+	@ExceptionHandler(TooManyRequestsException.class)
+	ProblemDetail handleTooManyRequests(TooManyRequestsException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+	}
+
+	@ExceptionHandler(InvalidFieldException.class)
+	ProblemDetail handleInvalidField(InvalidFieldException ex) {
+		return invalidFields(List.of(new InvalidField(ex.getField(), ex.getMessage())));
+	}
+
 	/**
 	 * Spring Security's exceptions are rethrown so that its filter chain answers them
 	 * with 401 or 403 instead of the catch-all below turning them into 500.
@@ -71,10 +81,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			.map(InvalidField::from)
 			.sorted(Comparator.comparing(InvalidField::field).thenComparing(InvalidField::message))
 			.toList();
-		ProblemDetail body = ex.getBody();
-		body.setDetail("The request contains invalid fields.");
+		return handleExceptionInternal(ex, invalidFields(errors), headers, status, request);
+	}
+
+	private static ProblemDetail invalidFields(List<InvalidField> errors) {
+		ProblemDetail body = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+				"The request contains invalid fields.");
 		body.setProperty("errors", errors);
-		return handleExceptionInternal(ex, body, headers, status, request);
+		return body;
 	}
 
 	/**

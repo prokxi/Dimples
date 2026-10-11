@@ -85,6 +85,26 @@ class GlobalExceptionHandlerTest {
 	}
 
 	@Test
+	void tooManyRequestsExceptionReturns429() {
+		MvcTestResult result = mvc.get().uri("/test/too-many-requests").exchange();
+
+		assertProblem(result, HttpStatus.TOO_MANY_REQUESTS);
+		assertThat(result).bodyJson().extractingPath("$.detail").isEqualTo("Try again later.");
+	}
+
+	@Test
+	void invalidFieldExceptionReturns400WithTheField() {
+		MvcTestResult result = mvc.get().uri("/test/invalid-field").exchange();
+
+		assertProblem(result, HttpStatus.BAD_REQUEST);
+		assertThat(result).bodyJson().extractingPath("$.detail").isEqualTo("The request contains invalid fields.");
+		assertThat(result).bodyJson().extractingPath("$.errors[0].field").isEqualTo("displayName");
+		assertThat(result).bodyJson()
+			.extractingPath("$.errors[0].message")
+			.isEqualTo("Display name must have 2 to 40 characters");
+	}
+
+	@Test
 	void unexpectedExceptionReturns500WithoutInternals() {
 		MvcTestResult result = mvc.get().uri("/test/unexpected").exchange();
 
@@ -140,6 +160,16 @@ class GlobalExceptionHandlerTest {
 		@GetMapping("/test/conflict")
 		void conflict() {
 			throw new ConflictException("Email address is already in use.");
+		}
+
+		@GetMapping("/test/too-many-requests")
+		void tooManyRequests() {
+			throw new TooManyRequestsException("Try again later.");
+		}
+
+		@GetMapping("/test/invalid-field")
+		void invalidField() {
+			throw new InvalidFieldException("displayName", "Display name must have 2 to 40 characters");
 		}
 
 		@GetMapping("/test/unexpected")

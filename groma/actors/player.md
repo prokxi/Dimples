@@ -14,3 +14,9 @@ A registered golfer with an official Handicap Index who plays in series with fri
 | Source | Target | Description | Technology |
 | --- | --- | --- | --- |
 | [player](player.md) | [dimples-backend](../systems/dimples/containers/dimples-backend/container.md) | Plays series and enters scores | HTTPS, JSON |
+
+## Relationships
+
+| Source | Target | Description | Technology |
+| --- | --- | --- | --- |
+| [player](player.md) | [src/main/java/com/prokxi/dimples/inbound/AuthController.java](../../src/main/java/com/prokxi/dimples/inbound/AuthController.java) | Registers and logs in | HTTPS, JSON |
