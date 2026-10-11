@@ -3,7 +3,7 @@ id: doc-8
 title: SPEC-6 Results & Standings
 type: specification
 created_date: '2026-10-11 11:36'
-updated_date: '2026-10-11 11:38'
+updated_date: '2026-10-11 11:40'
 ---
 # SPEC-6: Results & Standings
 
@@ -94,8 +94,8 @@ All endpoints are under `/api/v1/series/{seriesId}`, need an authenticated golfe
 
 ## 5. Persistence
 
-No new tables. `V7__add_team_to_event_participant.sql` adds the participant's team at the start (`team_id`, nullable,
-FK, index) to `event_participant` (extends SPEC-3).
+No new tables. `event_participant` (SPEC-3, `V5__create_event.sql`) also stores the participant's team at the start
+(`team_id`, nullable, FK, index). Both specs are implemented before V5 is committed, so no separate migration is needed.
 
 ## 6. Frontend (SPA)
 
@@ -125,7 +125,7 @@ Service & API
 - [ ] AC-8 Non-members get 404 for the standings and a player's matches.
 - [ ] AC-9 The standings endpoint returns `ETag` and 304 when nothing changed.
 - [ ] AC-10 Removed and deleted golfers stay in the standings; deleted golfers as "Deleted golfer".
-- [ ] AC-11 The participant's team is stored at the event start (migration V7).
+- [ ] AC-11 The participant's team is stored at the event start (in `event_participant`, migration V5).
 - [ ] AC-12 All endpoints are in the OpenAPI spec.
 
 ## 9. Decisions
