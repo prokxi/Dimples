@@ -47,16 +47,20 @@ public final class Golfer {
 
 	private final Instant deletedAt;
 
+	private final int version;
+
 	/**
 	 * Restores a golfer, e.g. from persistence. Use {@link #register} for new golfers.
 	 * @param email {@code null} for a deleted golfer
 	 * @param passwordHash {@code null} for a deleted golfer
 	 * @param displayName {@code null} for a deleted golfer
 	 * @param deletedAt {@code null} for an active golfer
+	 * @param version optimistic-locking version; {@code 0} for a golfer that has not been
+	 * stored yet
 	 */
 	public Golfer(GolferId id, EmailAddress email, String passwordHash, DisplayName displayName,
 			DistanceUnit distanceUnit, List<HandicapIndexEntry> handicapIndexes, GolferStatus status, GolferRole role,
-			boolean mustChangePassword, Instant createdAt, Instant deletedAt) {
+			boolean mustChangePassword, Instant createdAt, Instant deletedAt, int version) {
 		this.id = Objects.requireNonNull(id, "id must not be null");
 		this.distanceUnit = Objects.requireNonNull(distanceUnit, "distanceUnit must not be null");
 		this.status = Objects.requireNonNull(status, "status must not be null");
@@ -68,6 +72,7 @@ public final class Golfer {
 		this.displayName = displayName;
 		this.mustChangePassword = mustChangePassword;
 		this.deletedAt = deletedAt;
+		this.version = version;
 		if (status == GolferStatus.ACTIVE) {
 			Objects.requireNonNull(email, "email must not be null");
 			requirePasswordHash(passwordHash);
@@ -91,7 +96,7 @@ public final class Golfer {
 	public static Golfer register(GolferId id, EmailAddress email, String passwordHash, DisplayName displayName,
 			Instant now) {
 		return new Golfer(id, email, passwordHash, displayName, DistanceUnit.METERS, List.of(), GolferStatus.ACTIVE,
-				GolferRole.GOLFER, false, now, null);
+				GolferRole.GOLFER, false, now, null, 0);
 	}
 
 	/**
@@ -160,7 +165,7 @@ public final class Golfer {
 		requireActive();
 		return new Golfer(this.id, this.email, this.passwordHash, Objects.requireNonNull(displayName),
 				Objects.requireNonNull(distanceUnit), this.handicapIndexes, this.status, this.role,
-				this.mustChangePassword, this.createdAt, this.deletedAt);
+				this.mustChangePassword, this.createdAt, this.deletedAt, this.version);
 	}
 
 	/**
@@ -184,7 +189,7 @@ public final class Golfer {
 	public Golfer delete(Instant now) {
 		requireActive();
 		return new Golfer(this.id, null, null, null, this.distanceUnit, List.of(), GolferStatus.DELETED, this.role,
-				false, this.createdAt, Objects.requireNonNull(now, "now must not be null"));
+				false, this.createdAt, Objects.requireNonNull(now, "now must not be null"), this.version);
 	}
 
 	public boolean isActive() {
@@ -238,6 +243,10 @@ public final class Golfer {
 		return Optional.ofNullable(this.deletedAt);
 	}
 
+	public int version() {
+		return this.version;
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		return this == other || (other instanceof Golfer golfer && this.id.equals(golfer.id));
@@ -255,13 +264,13 @@ public final class Golfer {
 
 	private Golfer withHandicapIndexes(List<HandicapIndexEntry> entries) {
 		return new Golfer(this.id, this.email, this.passwordHash, this.displayName, this.distanceUnit, entries,
-				this.status, this.role, this.mustChangePassword, this.createdAt, this.deletedAt);
+				this.status, this.role, this.mustChangePassword, this.createdAt, this.deletedAt, this.version);
 	}
 
 	private Golfer withPassword(String passwordHash, boolean mustChangePassword) {
 		requireActive();
 		return new Golfer(this.id, this.email, passwordHash, this.displayName, this.distanceUnit, this.handicapIndexes,
-				this.status, this.role, mustChangePassword, this.createdAt, this.deletedAt);
+				this.status, this.role, mustChangePassword, this.createdAt, this.deletedAt, this.version);
 	}
 
 	private void requireActive() {
