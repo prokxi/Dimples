@@ -59,6 +59,7 @@ class GolferTest {
 			assertThat(golfer.mustChangePassword()).isFalse();
 			assertThat(golfer.createdAt()).isEqualTo(CREATED);
 			assertThat(golfer.deletedAt()).isEmpty();
+			assertThat(golfer.version()).isZero();
 		}
 
 		@Test
@@ -90,40 +91,53 @@ class GolferTest {
 					LocalDate.of(2026, 2, 1), CREATED);
 
 			Golfer golfer = new Golfer(ID, EMAIL, HASH, NAME, DistanceUnit.YARDS, List.of(entry), GolferStatus.ACTIVE,
-					GolferRole.OPERATOR, true, CREATED, null);
+					GolferRole.OPERATOR, true, CREATED, null, 3);
 
 			assertThat(golfer.distanceUnit()).isEqualTo(DistanceUnit.YARDS);
 			assertThat(golfer.handicapIndexes()).containsExactly(entry);
 			assertThat(golfer.role()).isEqualTo(GolferRole.OPERATOR);
 			assertThat(golfer.mustChangePassword()).isTrue();
+			assertThat(golfer.version()).isEqualTo(3);
+		}
+
+		@Test
+		void changesKeepTheVersion() {
+			Golfer golfer = new Golfer(ID, EMAIL, HASH, NAME, DistanceUnit.METERS, List.of(), GolferStatus.ACTIVE,
+					GolferRole.GOLFER, false, CREATED, null, 7);
+
+			assertThat(golfer.updateProfile(NAME, DistanceUnit.YARDS).version()).isEqualTo(7);
+			assertThat(golfer.changePassword(HASH).version()).isEqualTo(7);
+			assertThat(golfer.recordHandicapIndex(UUID.randomUUID(), HandicapIndex.of("12.0"), TODAY, TODAY, NOW)
+				.version()).isEqualTo(7);
+			assertThat(golfer.delete(NOW).version()).isEqualTo(7);
 		}
 
 		@Test
 		void requiresStatusRoleAndUnit() {
 			assertThatNullPointerException()
 				.isThrownBy(() -> new Golfer(ID, EMAIL, HASH, NAME, null, List.of(), GolferStatus.ACTIVE,
-						GolferRole.GOLFER, false, CREATED, null))
+						GolferRole.GOLFER, false, CREATED, null, 0))
 				.withMessageContaining("distanceUnit");
 			assertThatNullPointerException()
 				.isThrownBy(() -> new Golfer(ID, EMAIL, HASH, NAME, DistanceUnit.METERS, List.of(), null,
-						GolferRole.GOLFER, false, CREATED, null))
+						GolferRole.GOLFER, false, CREATED, null, 0))
 				.withMessageContaining("status");
 			assertThatNullPointerException()
 				.isThrownBy(() -> new Golfer(ID, EMAIL, HASH, NAME, DistanceUnit.METERS, List.of(), GolferStatus.ACTIVE,
-						null, false, CREATED, null))
+						null, false, CREATED, null, 0))
 				.withMessageContaining("role");
 		}
 
 		@Test
 		void rejectsActiveGolferWithDeletionTime() {
 			assertThatIllegalArgumentException().isThrownBy(() -> new Golfer(ID, EMAIL, HASH, NAME, DistanceUnit.METERS,
-					List.of(), GolferStatus.ACTIVE, GolferRole.GOLFER, false, CREATED, NOW));
+					List.of(), GolferStatus.ACTIVE, GolferRole.GOLFER, false, CREATED, NOW, 0));
 		}
 
 		@Test
 		void restoresDeletedGolfer() {
 			Golfer golfer = new Golfer(ID, null, null, null, DistanceUnit.METERS, List.of(), GolferStatus.DELETED,
-					GolferRole.GOLFER, false, CREATED, NOW);
+					GolferRole.GOLFER, false, CREATED, NOW, 0);
 
 			assertThat(golfer.isActive()).isFalse();
 			assertThat(golfer.deletedAt()).contains(NOW);
@@ -144,7 +158,7 @@ class GolferTest {
 		void rejectsDeletedGolferWithoutDeletionTime() {
 			assertThatNullPointerException()
 				.isThrownBy(() -> new Golfer(ID, null, null, null, DistanceUnit.METERS, List.of(), GolferStatus.DELETED,
-						GolferRole.GOLFER, false, CREATED, null))
+						GolferRole.GOLFER, false, CREATED, null, 0))
 				.withMessageContaining("deletedAt");
 		}
 
@@ -162,12 +176,12 @@ class GolferTest {
 
 		private Golfer deleted(EmailAddress email, String hash, DisplayName name, List<HandicapIndexEntry> entries) {
 			return new Golfer(ID, email, hash, name, DistanceUnit.METERS, entries, GolferStatus.DELETED,
-					GolferRole.GOLFER, false, CREATED, NOW);
+					GolferRole.GOLFER, false, CREATED, NOW, 0);
 		}
 
 		private Golfer active(List<HandicapIndexEntry> entries) {
 			return new Golfer(ID, EMAIL, HASH, NAME, DistanceUnit.METERS, entries, GolferStatus.ACTIVE,
-					GolferRole.GOLFER, false, CREATED, null);
+					GolferRole.GOLFER, false, CREATED, null, 0);
 		}
 
 	}
@@ -210,7 +224,7 @@ class GolferTest {
 			HandicapIndexEntry future = new HandicapIndexEntry(UUID.randomUUID(), HandicapIndex.of("10.0"),
 					TODAY.plusDays(1), NOW);
 			Golfer golfer = new Golfer(ID, EMAIL, HASH, NAME, DistanceUnit.METERS, List.of(future, past),
-					GolferStatus.ACTIVE, GolferRole.GOLFER, false, CREATED, null);
+					GolferStatus.ACTIVE, GolferRole.GOLFER, false, CREATED, null, 0);
 
 			assertThat(golfer.currentHandicapIndex(TODAY)).contains(HandicapIndex.of("20.0"));
 		}
