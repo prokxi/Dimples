@@ -30,8 +30,11 @@ groma:
     - scanner: java
       file: src/main/java/com/prokxi/dimples/domain/HandicapIndexEntry.java
       symbol: HandicapIndexEntry
+    - scanner: java
+      file: src/main/java/com/prokxi/dimples/domain/Password.java
+      symbol: Password
   technology: Plain Java records and classes
-description: 'Golfer aggregate: account data, settings and Handicap Index history'
+description: 'Golfer aggregate: account data, settings, Handicap Index history and password rules'
 ---
 
 The first domain aggregate (SPEC-1 section 3). An immutable `Golfer` holds the normalised email address, password hash, display name, distance unit preference, installation role (`GOLFER` or `OPERATOR`), the `mustChangePassword` flag after an operator reset, and the Handicap Index history. It answers which Handicap Index applies on a date (later used to freeze handicaps when an event starts), records new values (future dates rejected, an existing date replaced), and on account deletion removes all personal data while keeping the golfer as `DELETED` so past results stay consistent. IDs are application-generated UUIDs (decision-2); times are passed in by the service from its `Clock`. Invariant violations are signalled with JDK exceptions.
